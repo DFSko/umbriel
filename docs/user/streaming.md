@@ -37,13 +37,28 @@ case "$1" in
             sleep 0.2
             i=$((i + 1))
         done
+        # Move what is left to the focused workspace of another output, so it
+        # does not return to the next session's output (see below).
+        target="$(umbriel workspaces --json |
+            jq -r --arg out "$name" '[.[] | select(.output != $out and .active)]
+                | (map(select(.focused)) + .) | first | "\(.name)/\(.output)" // empty')"
+        for id in $(umbriel windows --json |
+            jq -r --arg out "$name:" '.[] | select(.workspace | startswith($out)) | .id'); do
+            [ -n "$target" ] || break
+            umbriel msg "window-focus:$id"
+            umbriel msg "window-move-to-workspace-silent:$target"
+        done
         umbriel output-destroy "$name" >/dev/null 2>&1 || true
         ;;
 esac
 ```
 
-Destroying the output moves any window still on it to another output, as when
-a monitor is unplugged.
+Destroying an output moves its windows to another output, as when a monitor is
+unplugged, and Umbriel remembers the output as their home: when an output with
+the same name appears again, they move back to it. That is right for a monitor
+that returns after suspend, but it would pull a terminal that once opened on the
+stream onto every later stream. A move made through `umbriel msg`, like the one
+above, drops that memory.
 
 ## Sunshine configuration
 
@@ -61,9 +76,9 @@ Replace `/home/user` with your home directory. Restart Sunshine after editing
 
 ## Opening applications on the stream
 
-New windows open on the focused output, which is usually a physical monitor.
-Use a [window rule](window-rules.md) to send an application to the stream
-instead. For Steam Big Picture:
+New windows open on the output under the pointer, which is usually a physical
+monitor. Use a [window rule](window-rules.md) to send an application to the
+stream instead. For Steam Big Picture:
 
 ```toml
 [[window_rule]]
@@ -97,3 +112,24 @@ focus by default, and Steam's may switch a physical monitor to its workspace.
 To keep focus where it was, give that window `default_focused = false` only for
 the length of a session: include a file that the script fills in `create` and
 empties in `remove`, then reload with `umbriel msg config-reload`.
+
+## Games
+
+Games launched from Big Picture need a rule of their own. Proton games report
+an application ID of `steam_app_<id>`:
+
+```toml
+[[window_rule]]
+match.app_id = "^steam_app_"
+default_output = "sunshine"
+```
+
+Proton through Wine's Wayland driver (`PROTON_USE_WAYLAND=1`) picks its primary
+monitor by itself and sizes fullscreen games for it. When that is a physical
+monitor, the game renders at that monitor's size and the stream shows only the
+top-left part of it. Name the stream's output instead, in the game's launch
+options:
+
+```sh
+WAYLANDDRV_PRIMARY_MONITOR=sunshine %command%
+```
