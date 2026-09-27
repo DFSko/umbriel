@@ -62,6 +62,11 @@ namespace umbriel {
   bool Server::destroyOutput(const std::string& name, std::string* error) {
     for (const auto& output : m_outputs) {
       if (output->wlr()->name != nullptr && name == output->wlr()->name) {
+        // A destroyed DRM or nested output does not come back until the monitor is reconnected.
+        if (!wlr_output_is_headless(output->wlr())) {
+          *error = "not a virtual output: " + name;
+          return false;
+        }
         wlr_output_destroy(output->wlr());
         return true;
       }
