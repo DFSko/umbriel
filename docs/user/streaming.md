@@ -57,8 +57,8 @@ Destroying an output moves its windows to another output, as when a monitor is
 unplugged, and Umbriel remembers the output as their home: when an output with
 the same name appears again, they move back to it. That is right for a monitor
 that returns after suspend, but it would pull a terminal that once opened on the
-stream onto every later stream. A move made through `umbriel msg`, like the one
-above, drops that memory.
+stream onto every later stream. An explicit move, like the one above, drops that
+memory.
 
 ## Sunshine configuration
 
