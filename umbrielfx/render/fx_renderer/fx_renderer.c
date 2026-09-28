@@ -213,7 +213,12 @@ static struct wlr_render_pass *begin_buffer_pass_with_output(
 
 static struct wlr_render_pass *begin_buffer_pass(struct wlr_renderer *wlr_renderer,
 		struct wlr_buffer *wlr_buffer, const struct wlr_buffer_pass_options *options) {
-	return begin_buffer_pass_with_output(wlr_renderer, wlr_buffer, options, NULL);
+	struct wlr_render_pass *pass = begin_buffer_pass_with_output(wlr_renderer, wlr_buffer, options, NULL);
+	// Outputs use fx_renderer_begin_output_buffer_pass; this path renders into client buffers.
+	if (pass != NULL && options->signal_timeline == NULL) {
+		fx_get_render_pass(pass)->implicit_sync_target = true;
+	}
+	return pass;
 }
 
 struct wlr_render_pass *fx_renderer_begin_output_buffer_pass(
