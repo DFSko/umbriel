@@ -147,5 +147,6 @@ lists the keys it accepts, both without a running compositor.
 | `{"cmd":"output-destroy","arg":"<name>"}` | `umbriel output-destroy <name>` |
 
 `output-create` replies with the new output's name. Both commands reply with an
-error for a name that is already taken or unknown, and `output-destroy` refuses
-outputs backed by a real display. See [Virtual outputs](outputs.md#virtual-outputs).
+error for a name that is invalid, already taken, or unknown, and
+`output-destroy` refuses outputs backed by a real display. See
+[Virtual outputs](outputs.md#virtual-outputs).

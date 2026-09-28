@@ -283,9 +283,10 @@ umbriel output-create stream
 umbriel output-destroy stream
 ```
 
-`output-create` prints the new output's name. A virtual output starts at
-1280x720; set its size with an output section or with an output-management
-tool such as `wlr-randr`:
+The name uses ASCII letters, digits, `-`, `_`, and `.`, and must not match an
+existing output, ignoring case. `output-create` prints the new output's name. A
+virtual output starts at 1280x720; set its size with an output section or with
+an output-management tool such as `wlr-randr`:
 
 ```toml
 [output.stream]

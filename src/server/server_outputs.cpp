@@ -38,13 +38,17 @@ namespace umbriel {
   } // namespace
 
   std::string Server::createHeadlessOutput(const std::string& name, std::string* error) {
+    if (!validVirtualOutputName(name)) {
+      *error = "invalid output name: " + name + " (use letters, digits, '-', '_' and '.')";
+      return {};
+    }
     wlr_backend* headless = headlessBackend(m_backend);
     if (headless == nullptr) {
       *error = "no headless backend in this session";
       return {};
     }
     for (const auto& output : m_outputs) {
-      if (output->wlr()->name != nullptr && name == output->wlr()->name) {
+      if (outputNameMatch(output->identity(), name) != OutputNameMatch::None) {
         *error = "output already exists: " + name;
         return {};
       }
